@@ -1,4 +1,4 @@
-package in.mannvender.splitwise.dtos;
+package in.mannvender.splitwise.dtos.settle_up;
 
 import lombok.Getter;
 import lombok.Setter;

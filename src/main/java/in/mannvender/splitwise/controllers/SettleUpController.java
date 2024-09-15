@@ -1,11 +1,11 @@
 package in.mannvender.splitwise.controllers;
 
-import in.mannvender.splitwise.dtos.SettleUpGroupRequestDto;
-import in.mannvender.splitwise.dtos.SettleUpGroupResponseDto;
-import in.mannvender.splitwise.dtos.SettleUpUserRequestDto;
-import in.mannvender.splitwise.dtos.SettleUpUserResponseDto;
+import in.mannvender.splitwise.dtos.settle_up.SettleUpGroupRequestDto;
+import in.mannvender.splitwise.dtos.settle_up.SettleUpGroupResponseDto;
+import in.mannvender.splitwise.dtos.settle_up.SettleUpUserRequestDto;
+import in.mannvender.splitwise.dtos.settle_up.SettleUpUserResponseDto;
 import in.mannvender.splitwise.models.Expense;
-import in.mannvender.splitwise.services.ISettleUpService;
+import in.mannvender.splitwise.services.interfaces.ISettleUpService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
