@@ -4,14 +4,18 @@ import in.mannvender.splitwise.models.User;
 import in.mannvender.splitwise.repositories.UserRepo;
 import in.mannvender.splitwise.services.interfaces.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements IUserService {
     @Autowired
     private UserRepo userRepo;
+    @Autowired
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Override
     public List<User> getAllUsers() {
@@ -29,16 +33,21 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    public User createUser(User user) {
-        return userRepo.save(user);
+    public User createUser(String name, String email, String password) {
+        return null;
     }
 
     @Override
-    public User updateUser(User user) {
-        if (userRepo.existsById(user.getId())) {
+    public User updateUser(String name, String email, String password) {
+        Optional<User> existingUser = userRepo.findByEmail(email);
+        if (existingUser.isPresent()) {
+            User user = new User();
+            user.setName(name);
+            user.setEmail(email);
+            user.setPassword(password);
             return userRepo.save(user);
         } else {
-            return null;
+            throw new RuntimeException("User not found");
         }
     }
 

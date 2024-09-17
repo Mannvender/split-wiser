@@ -9,8 +9,12 @@ import in.mannvender.splitwise.models.User;
 import in.mannvender.splitwise.services.interfaces.IAuthService;
 import in.mannvender.splitwise.services.interfaces.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,29 +29,50 @@ public class AuthController {
     private IAuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<AuthSignupResponseDto> signUp(@RequestBody AuthSignupRequestDto requestDto){
-        if(requestDto == null || requestDto.getName() == null || requestDto.getEmail() == null || requestDto.getPassword() == null){
-            throw new RuntimeException("User cannot be null");
+    public ResponseEntity<AuthSignupResponseDto> signUp(@RequestBody AuthSignupRequestDto requestDto) {
+        try {
+            if (requestDto == null ||
+                    requestDto.getName() == null ||
+                    requestDto.getEmail() == null ||
+                    requestDto.getPassword() == null ||
+                    requestDto.getName().isEmpty() ||
+                    requestDto.getEmail().isEmpty() ||
+                    requestDto.getPassword().isEmpty()
+            ) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+            User createdUser = authService.register(requestDto.getName(), requestDto.getEmail(), requestDto.getPassword());
+            AuthSignupResponseDto responseDto = convertToAuthSignupResponseDto(createdUser);
+            ResponseEntity<AuthSignupResponseDto> responseEntity = new ResponseEntity<>(responseDto, HttpStatus.CREATED);
+            return responseEntity;
+
         }
-        User user = convertAuthSignupRequestDtoToUser(requestDto);
-        User createdUser = userService.createUser(user);
-        AuthSignupResponseDto responseDto = convertToAuthSignupResponseDto(createdUser);
-        ResponseEntity<AuthSignupResponseDto> responseEntity = new ResponseEntity<>(responseDto, HttpStatus.CREATED);
-        return responseEntity;
+        catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthLoginResponseDto> login(@RequestBody AuthLoginRequestDto requestDto){
-        if(requestDto == null || requestDto.getEmail() == null || requestDto.getPassword() == null){
-            throw new RuntimeException("User cannot be null");
+    public ResponseEntity<AuthLoginResponseDto> login(@RequestBody AuthLoginRequestDto requestDto) {
+        if (requestDto == null || requestDto.getEmail() == null || requestDto.getPassword() == null || requestDto.getEmail().isEmpty() || requestDto.getPassword().isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        User user = userService.getUserByEmail(requestDto.getEmail());
+
+        Pair<User, String> userTokenPair = authService.login(requestDto.getEmail(), requestDto.getPassword());
+        User user = userTokenPair.getFirst();
+        String token = userTokenPair.getSecond();
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add(HttpHeaders.SET_COOKIE, token);
+
+        if(user == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
         AuthLoginResponseDto responseDto = convertToAuthLoginResponseDto(user);
-        ResponseEntity<AuthLoginResponseDto> responseEntity = new ResponseEntity<>(responseDto, HttpStatus.OK);
+        ResponseEntity<AuthLoginResponseDto> responseEntity = new ResponseEntity<>(responseDto, headers, HttpStatus.OK);
         return responseEntity;
     }
 
-    private AuthLoginResponseDto convertToAuthLoginResponseDto(User user){
+    private AuthLoginResponseDto convertToAuthLoginResponseDto(User user) {
         AuthLoginResponseDto responseDto = new AuthLoginResponseDto();
         responseDto.setId(user.getId());
         responseDto.setName(user.getName());
@@ -55,7 +80,7 @@ public class AuthController {
         return responseDto;
     }
 
-    private AuthSignupResponseDto convertToAuthSignupResponseDto(User user){
+    private AuthSignupResponseDto convertToAuthSignupResponseDto(User user) {
         AuthSignupResponseDto responseDto = new AuthSignupResponseDto();
         responseDto.setId(user.getId());
         responseDto.setName(user.getName());
@@ -63,7 +88,7 @@ public class AuthController {
         return responseDto;
     }
 
-    private User convertAuthSignupRequestDtoToUser(AuthSignupRequestDto responseDto){
+    private User convertAuthSignupRequestDtoToUser(AuthSignupRequestDto responseDto) {
         User user = new User();
         user.setName(responseDto.getName());
         user.setEmail(responseDto.getEmail());
@@ -71,7 +96,7 @@ public class AuthController {
         return user;
     }
 
-    private UserResponseDto convertToUserResponseDto(User user){
+    private UserResponseDto convertToUserResponseDto(User user) {
         UserResponseDto responseDto = new UserResponseDto();
         responseDto.setId(user.getId());
         responseDto.setName(user.getName());

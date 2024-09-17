@@ -8,7 +8,7 @@ public interface IUserService {
     public List<User> getAllUsers();
     public User getUserById(Long userId);
     public User getUserByEmail(String email);
-    public User createUser(User user);
-    public User updateUser(User user);
+    public User createUser(String name, String email, String password);
+    public User updateUser(String name, String email, String password);
     public void deleteUser(Long userId);
 }
