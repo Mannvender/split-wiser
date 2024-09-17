@@ -1,8 +1,12 @@
 package in.mannvender.splitwise.services;
 
+import in.mannvender.splitwise.models.Session;
 import in.mannvender.splitwise.models.User;
+import in.mannvender.splitwise.repositories.SessionRepo;
 import in.mannvender.splitwise.repositories.UserRepo;
 import in.mannvender.splitwise.services.interfaces.IAuthService;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.MacAlgorithm;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +31,10 @@ public class AuthServiceImpl implements IAuthService {
     private UserRepo userRepo;
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
-    @Qualifier("messageSource")
     @Autowired
-    private MessageSource messageSource;
+    private SecretKey secretKey;
+    @Autowired
+    private SessionRepo sessionRepo;
 
     @Override
     public Pair<User, String> login(String email, String password) {
@@ -44,24 +49,25 @@ public class AuthServiceImpl implements IAuthService {
         }
 
         // generate jwt token
-        MacAlgorithm algorithm = Jwts.SIG.HS256;
-        SecretKey secretKey = algorithm.key().build();
         Map<String, Object> claims = new HashMap<>();
         claims.put("user_id", user.getId());
         claims.put("email", user.getEmail());
         claims.put("roles", user.getRoles());
         long timeInMillis = System.currentTimeMillis();
         claims.put("iat", timeInMillis);
-        claims.put("exp", timeInMillis + 1000 * 60 * 60 * 24 * 7); // 7 days
+        claims.put("exp", timeInMillis + 1000L * 60 * 60 * 24 * 365); // 1 year
         claims.put("iss", "split_wiser");
-
         String token = Jwts.builder().claims(claims).signWith(secretKey).compact();
 
+        // save session
+        Session session = new Session();
+        session.setToken(token);
+        session.setUser(user);
+        sessionRepo.save(session);
 
-        Pair<User, String> userTokenPair = Pair.of(user, token);
-
-        return userTokenPair;
+        return Pair.of(user, token);
     }
+
 
     @Override
     public User register(String name, String email, String password) {
@@ -74,5 +80,26 @@ public class AuthServiceImpl implements IAuthService {
         user.setEmail(email);
         user.setPassword(bCryptPasswordEncoder.encode(password));
         return userRepo.save(user);
+    }
+
+    @Override
+    public boolean validateToken(String token, Long userId) {
+        Optional<Session> sessionOptional = sessionRepo.findSessionByTokenAndUser_Id(token, userId);
+        if(sessionOptional.isEmpty()) {
+            return false;
+        }
+
+        // parse jwt token
+        JwtParser jwtParser = Jwts.parser().verifyWith(secretKey).build();
+        Claims claims = jwtParser.parseSignedClaims(token).getPayload();
+
+        Long expiryTime = claims.get("exp", Long.class);
+        Long currentTime = System.currentTimeMillis();
+        if(expiryTime < currentTime) {
+            return false;
+        }
+
+        Session session = sessionOptional.get();
+        return session.getUser().getId().equals(userId);
     }
 }

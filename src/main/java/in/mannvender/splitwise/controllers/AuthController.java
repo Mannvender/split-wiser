@@ -1,13 +1,11 @@
 package in.mannvender.splitwise.controllers;
 
-import in.mannvender.splitwise.dtos.auth.AuthLoginRequestDto;
-import in.mannvender.splitwise.dtos.auth.AuthLoginResponseDto;
-import in.mannvender.splitwise.dtos.auth.AuthSignupRequestDto;
-import in.mannvender.splitwise.dtos.auth.AuthSignupResponseDto;
+import in.mannvender.splitwise.dtos.auth.*;
 import in.mannvender.splitwise.dtos.user.UserResponseDto;
 import in.mannvender.splitwise.models.User;
 import in.mannvender.splitwise.services.interfaces.IAuthService;
 import in.mannvender.splitwise.services.interfaces.IUserService;
+import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
 import org.springframework.http.HttpHeaders;
@@ -69,6 +67,19 @@ public class AuthController {
         }
         AuthLoginResponseDto responseDto = convertToAuthLoginResponseDto(user);
         ResponseEntity<AuthLoginResponseDto> responseEntity = new ResponseEntity<>(responseDto, headers, HttpStatus.OK);
+        return responseEntity;
+    }
+
+    @PostMapping("/validate-token")
+    public ResponseEntity<AuthValidateTokenResponseDto> validateToken(@RequestBody AuthValidateTokenRequestDto requestDto) {
+        if (requestDto == null || requestDto.getToken() == null || requestDto.getToken().isEmpty() || requestDto.getUserId() == null) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        boolean isValid = authService.validateToken(requestDto.getToken(), requestDto.getUserId());
+        AuthValidateTokenResponseDto responseDto = new AuthValidateTokenResponseDto();
+        responseDto.setTokenValid(isValid);
+        responseDto.setUserId(requestDto.getUserId());
+        ResponseEntity<AuthValidateTokenResponseDto> responseEntity = new ResponseEntity<>(responseDto, HttpStatus.OK);
         return responseEntity;
     }
 
