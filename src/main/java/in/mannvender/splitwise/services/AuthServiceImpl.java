@@ -88,6 +88,13 @@ public class AuthServiceImpl implements IAuthService {
         if(sessionOptional.isEmpty()) {
             return false;
         }
+        Session session = sessionOptional.get();
+        if(session.getUser() == null || session.getToken() == null) {
+            return false;
+        }
+        if(!session.getToken().equals(token)) {
+            return false;
+        }
 
         // parse jwt token
         JwtParser jwtParser = Jwts.parser().verifyWith(secretKey).build();
@@ -95,11 +102,6 @@ public class AuthServiceImpl implements IAuthService {
 
         Long expiryTime = claims.get("exp", Long.class);
         Long currentTime = System.currentTimeMillis();
-        if(expiryTime < currentTime) {
-            return false;
-        }
-
-        Session session = sessionOptional.get();
-        return session.getUser().getId().equals(userId);
+        return expiryTime >= currentTime;
     }
 }
