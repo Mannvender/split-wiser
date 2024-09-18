@@ -7,20 +7,18 @@ import in.mannvender.splitwise.dtos.settle_up.SettleUpUserResponseDto;
 import in.mannvender.splitwise.models.Expense;
 import in.mannvender.splitwise.services.interfaces.ISettleUpService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController("/settle-up")
+@RestController()
+@RequestMapping("/settle-up")
 public class SettleUpController {
     @Autowired
     private ISettleUpService settleUpService;
 
-    @PostMapping("/user/{userId}")
-    public SettleUpUserResponseDto settleUpUser(@PathVariable("userId") Long userId, @RequestBody SettleUpUserRequestDto requestDto){
+    @PostMapping("/user")
+    public SettleUpUserResponseDto settleUpUser(@RequestBody SettleUpUserRequestDto requestDto){
         if(requestDto.getUserId() == null){
             throw new RuntimeException("User Id cannot be null");
         }
@@ -30,8 +28,15 @@ public class SettleUpController {
         return responseDto;
     }
 
-    public SettleUpGroupResponseDto settleUpGroup(SettleUpGroupRequestDto requestDto) {
-        return null;
+    @PostMapping("/group")
+    public SettleUpGroupResponseDto settleUpGroup(@RequestBody SettleUpGroupRequestDto requestDto) {
+        if(requestDto.getGroupId() == null){
+            throw new RuntimeException("Group Id cannot be null");
+        }
+        List<Expense> transactions = settleUpService.settleUpGroup(requestDto.getGroupId());
+        SettleUpGroupResponseDto responseDto = new SettleUpGroupResponseDto();
+        responseDto.setTransactions(transactions);
+        return responseDto;
     }
 
 }

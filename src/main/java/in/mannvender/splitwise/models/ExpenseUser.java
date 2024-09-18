@@ -17,4 +17,5 @@ public class ExpenseUser extends BaseModel {
     private User user;
     @Enumerated(EnumType.ORDINAL)
     private ExpenseUserType expenseUserType;
+    private double amount;
 }

@@ -1,6 +1,6 @@
 package in.mannvender.splitwise.models;
 
 public enum ExpenseType {
-    REAL,
-    DUMMY
+    REAL, // for real transactions
+    DUMMY // for settle up transactions
 }
