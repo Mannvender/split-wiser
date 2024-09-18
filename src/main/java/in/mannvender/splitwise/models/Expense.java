@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -15,7 +16,7 @@ public class Expense extends BaseModel {
     @Enumerated(EnumType.ORDINAL)
     private ExpenseType expenseType;
     @OneToMany(mappedBy = "expense")
-    private List<ExpenseUser> expenseUsers;
+    private List<ExpenseUser> expenseUsers = new ArrayList<>();
     @ManyToOne
     private User createdBy;
     @ManyToOne
