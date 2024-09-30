@@ -72,6 +72,10 @@ public class ExpenseServiceImpl implements IExpenseService {
 
     @Override
     public Expense getExpenseById(Long expenseId) {
-        return null;
+        Optional<Expense> optionalExpense = expenseRepo.findById(expenseId);
+        if(optionalExpense.isEmpty()){
+            throw new RuntimeException("Expense not found");
+        }
+        return optionalExpense.get();
     }
 }

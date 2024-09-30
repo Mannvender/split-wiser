@@ -4,12 +4,11 @@ import in.mannvender.splitwise.dtos.expense.AmountUserIdPair;
 import in.mannvender.splitwise.dtos.expense.ExpenseRequestDto;
 import in.mannvender.splitwise.dtos.expense.ExpenseResponseDto;
 import in.mannvender.splitwise.models.Expense;
+import in.mannvender.splitwise.models.ExpenseUser;
+import in.mannvender.splitwise.models.ExpenseUserType;
 import in.mannvender.splitwise.services.interfaces.IExpenseService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/expense")
@@ -42,12 +41,39 @@ public class ExpenseController {
 
         // call service
         Expense expense = expenseService.createExpense(requestDto.getDescription(), requestDto.getAmount(), requestDto.isSettlement(), requestDto.getGroupId(), requestDto.getCreatedByUserId(), requestDto.getPaidByUserIds(), requestDto.getHadToPayUserIds());
+        return getExpenseResponseDto(expense);
+    }
+
+    @GetMapping("/{id}")
+    public ExpenseResponseDto getExpenseById(@PathVariable Long id){
+        Expense expense = expenseService.getExpenseById(id);
+        return getExpenseResponseDto(expense);
+    }
+
+    private ExpenseResponseDto getExpenseResponseDto(Expense expense) {
         ExpenseResponseDto responseDto = new ExpenseResponseDto();
         responseDto.setId(expense.getId());
-        responseDto.setCreatedBy(expense.getCreatedBy().getId().toString());
+        responseDto.setCreatedBy(expense.getCreatedBy().getId());
         responseDto.setDescription(expense.getDescription());
         responseDto.setAmount(expense.getAmount());
         responseDto.setCreatedAt(expense.getCreatedAt().toString());
+        responseDto.setExpenseType(expense.getExpenseType().toString());
+        AmountUserIdPair hadToPayUserIds = new AmountUserIdPair();
+        for (ExpenseUser hadToPayExpenseUser: expense.getExpenseUsers()) {
+            if(hadToPayExpenseUser.getExpenseUserType().equals(ExpenseUserType.HAD_TO_PAY)){
+                hadToPayUserIds.setAmount(hadToPayExpenseUser.getAmount());
+                hadToPayUserIds.setUserId(hadToPayExpenseUser.getUser().getId());
+                responseDto.getHadToPayUserIds().add(hadToPayUserIds);
+            }
+        }
+        AmountUserIdPair paidByUserIds = new AmountUserIdPair();
+        for (ExpenseUser paidByExpenseUser: expense.getExpenseUsers()) {
+            if(paidByExpenseUser.getExpenseUserType().equals(ExpenseUserType.PAID_BY)){
+                paidByUserIds.setAmount(paidByExpenseUser.getAmount());
+                paidByUserIds.setUserId(paidByExpenseUser.getUser().getId());
+                responseDto.getPaidByUserIds().add(paidByUserIds);
+            }
+        }
 
         return responseDto;
     }

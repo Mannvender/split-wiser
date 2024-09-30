@@ -21,4 +21,8 @@ public class Expense extends BaseModel {
     private User createdBy;
     @ManyToOne
     private Group group;
+
+    public String getExpenseTypeString() {
+        return expenseType != null ? expenseType.name() : null;
+    }
 }
