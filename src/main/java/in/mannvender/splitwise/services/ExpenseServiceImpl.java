@@ -3,6 +3,7 @@ package in.mannvender.splitwise.services;
 import in.mannvender.splitwise.dtos.expense.AmountUserIdPair;
 import in.mannvender.splitwise.models.*;
 import in.mannvender.splitwise.repositories.ExpenseRepo;
+import in.mannvender.splitwise.repositories.ExpenseUserRepo;
 import in.mannvender.splitwise.repositories.UserRepo;
 import in.mannvender.splitwise.services.interfaces.IExpenseService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,8 @@ public class ExpenseServiceImpl implements IExpenseService {
     private ExpenseRepo expenseRepo;
     @Autowired
     private UserRepo userRepo;
+    @Autowired
+    private ExpenseUserRepo expenseUserRepo;
 
     @Override
     public Expense createExpense(String description, double amount, Boolean isSettlement, Long groupId, Long createdByUserId, List<AmountUserIdPair> paidByUserIds, List<AmountUserIdPair> hadToPayUserIds) {
@@ -33,17 +36,25 @@ public class ExpenseServiceImpl implements IExpenseService {
         expense.setAmount(amount);
         expense.setExpenseType(isSettlement ? ExpenseType.DUMMY : ExpenseType.REAL);
         expense.setCreatedBy(createdByUser);
+
+        // Save the expense first
+        Expense savedExpense = expenseRepo.save(expense);
+
         for(AmountUserIdPair paidByUserId : paidByUserIds){
-            ExpenseUser expenseUser = insertExpenseUser(expense, paidByUserId);
+            ExpenseUser expenseUser = insertExpenseUser(savedExpense, paidByUserId);
             expenseUser.setExpenseUserType(ExpenseUserType.PAID_BY);
-            expense.getExpenseUsers().add(expenseUser);
+            // save expenseUser
+            ExpenseUser savedExpenseUser = expenseUserRepo.save(expenseUser);
+            expense.getExpenseUsers().add(savedExpenseUser);
         }
         for(AmountUserIdPair hadToPayUserId : hadToPayUserIds){
-            ExpenseUser expenseUser = insertExpenseUser(expense, hadToPayUserId);
+            ExpenseUser expenseUser = insertExpenseUser(savedExpense, hadToPayUserId);
             expenseUser.setExpenseUserType(ExpenseUserType.HAD_TO_PAY);
-            expense.getExpenseUsers().add(expenseUser);
+            // save expenseUser
+            ExpenseUser savedExpenseUser = expenseUserRepo.save(expenseUser);
+            expense.getExpenseUsers().add(savedExpenseUser);
         }
-        return expenseRepo.save(expense);
+        return savedExpense;
     }
 
     private ExpenseUser insertExpenseUser(Expense expense, AmountUserIdPair hadToPayUserId) {

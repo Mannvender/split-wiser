@@ -13,5 +13,4 @@ public class ExpenseResponseDto {
     private String createdBy;
     private String group;
     private String createdAt;
-    private String updatedAt;
 }

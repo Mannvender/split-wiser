@@ -2,6 +2,7 @@ package in.mannvender.splitwise.controllers;
 
 import in.mannvender.splitwise.dtos.expense.AmountUserIdPair;
 import in.mannvender.splitwise.dtos.expense.ExpenseRequestDto;
+import in.mannvender.splitwise.dtos.expense.ExpenseResponseDto;
 import in.mannvender.splitwise.models.Expense;
 import in.mannvender.splitwise.services.interfaces.IExpenseService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,7 @@ public class ExpenseController {
     private IExpenseService expenseService;
 
     @PostMapping
-    public Expense createExpense(@RequestBody ExpenseRequestDto requestDto){
+    public ExpenseResponseDto createExpense(@RequestBody ExpenseRequestDto requestDto){
         if(requestDto == null){
             throw new RuntimeException("Expense cannot be null");
         }
@@ -40,6 +41,14 @@ public class ExpenseController {
         }
 
         // call service
-        return expenseService.createExpense(requestDto.getDescription(), requestDto.getAmount(), requestDto.isSettlement(), requestDto.getGroupId(), requestDto.getCreatedByUserId(), requestDto.getPaidByUserIds(), requestDto.getHadToPayUserIds());
+        Expense expense = expenseService.createExpense(requestDto.getDescription(), requestDto.getAmount(), requestDto.isSettlement(), requestDto.getGroupId(), requestDto.getCreatedByUserId(), requestDto.getPaidByUserIds(), requestDto.getHadToPayUserIds());
+        ExpenseResponseDto responseDto = new ExpenseResponseDto();
+        responseDto.setId(expense.getId());
+        responseDto.setCreatedBy(expense.getCreatedBy().getId().toString());
+        responseDto.setDescription(expense.getDescription());
+        responseDto.setAmount(expense.getAmount());
+        responseDto.setCreatedAt(expense.getCreatedAt().toString());
+
+        return responseDto;
     }
 }
