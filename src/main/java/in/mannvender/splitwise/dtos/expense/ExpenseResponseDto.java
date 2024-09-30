@@ -14,7 +14,7 @@ public class ExpenseResponseDto {
     private double amount;
     private String expenseType;
     private Long createdBy;
-    private String group;
+    private Long groupId;
     private String createdAt;
     private List<AmountUserIdPair> paidByUserIds = new ArrayList<>();
     private List<AmountUserIdPair> hadToPayUserIds = new ArrayList<>();

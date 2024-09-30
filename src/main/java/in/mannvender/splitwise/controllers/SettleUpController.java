@@ -1,11 +1,13 @@
 package in.mannvender.splitwise.controllers;
 
+import in.mannvender.splitwise.dtos.expense.ExpenseResponseDto;
 import in.mannvender.splitwise.dtos.settle_up.SettleUpGroupRequestDto;
 import in.mannvender.splitwise.dtos.settle_up.SettleUpGroupResponseDto;
 import in.mannvender.splitwise.dtos.settle_up.SettleUpUserRequestDto;
 import in.mannvender.splitwise.dtos.settle_up.SettleUpUserResponseDto;
 import in.mannvender.splitwise.models.Expense;
 import in.mannvender.splitwise.services.interfaces.ISettleUpService;
+import in.mannvender.splitwise.utils.ExpenseDtoConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,9 +25,11 @@ public class SettleUpController {
             throw new RuntimeException("User Id cannot be null");
         }
         List<Expense> transactions = settleUpService.settleUpUser(requestDto.getUserId());
-        SettleUpUserResponseDto responseDto = new SettleUpUserResponseDto();
-        responseDto.setTransactions(transactions);
-        return responseDto;
+        SettleUpUserResponseDto settleUpUserResponseDto = new SettleUpUserResponseDto();
+        for(Expense expense: transactions){
+            settleUpUserResponseDto.getTransactions().add(ExpenseDtoConverter.getExpenseResponseDto(expense));
+        }
+        return settleUpUserResponseDto;
     }
 
     @PostMapping("/group")
@@ -38,5 +42,4 @@ public class SettleUpController {
         responseDto.setTransactions(transactions);
         return responseDto;
     }
-
 }
