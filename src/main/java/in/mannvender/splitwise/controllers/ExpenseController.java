@@ -50,6 +50,11 @@ public class ExpenseController {
         return getExpenseResponseDto(expense);
     }
 
+    @DeleteMapping("/{id}")
+    public void deleteExpenseById(@PathVariable Long id){
+        expenseService.deleteExpenseById(id);
+    }
+
     private ExpenseResponseDto getExpenseResponseDto(Expense expense) {
         ExpenseResponseDto responseDto = new ExpenseResponseDto();
         responseDto.setId(expense.getId());

@@ -37,24 +37,17 @@ public class ExpenseServiceImpl implements IExpenseService {
         expense.setExpenseType(isSettlement ? ExpenseType.DUMMY : ExpenseType.REAL);
         expense.setCreatedBy(createdByUser);
 
-        // Save the expense first
-        Expense savedExpense = expenseRepo.save(expense);
-
         for(AmountUserIdPair paidByUserId : paidByUserIds){
-            ExpenseUser expenseUser = insertExpenseUser(savedExpense, paidByUserId);
+            ExpenseUser expenseUser = insertExpenseUser(expense, paidByUserId);
             expenseUser.setExpenseUserType(ExpenseUserType.PAID_BY);
-            // save expenseUser
-            ExpenseUser savedExpenseUser = expenseUserRepo.save(expenseUser);
-            expense.getExpenseUsers().add(savedExpenseUser);
+            expense.getExpenseUsers().add(expenseUser);
         }
         for(AmountUserIdPair hadToPayUserId : hadToPayUserIds){
-            ExpenseUser expenseUser = insertExpenseUser(savedExpense, hadToPayUserId);
+            ExpenseUser expenseUser = insertExpenseUser(expense, hadToPayUserId);
             expenseUser.setExpenseUserType(ExpenseUserType.HAD_TO_PAY);
-            // save expenseUser
-            ExpenseUser savedExpenseUser = expenseUserRepo.save(expenseUser);
-            expense.getExpenseUsers().add(savedExpenseUser);
+            expense.getExpenseUsers().add(expenseUser);
         }
-        return savedExpense;
+        return expenseRepo.save(expense);
     }
 
     private ExpenseUser insertExpenseUser(Expense expense, AmountUserIdPair hadToPayUserId) {
@@ -77,5 +70,17 @@ public class ExpenseServiceImpl implements IExpenseService {
             throw new RuntimeException("Expense not found");
         }
         return optionalExpense.get();
+    }
+
+    @Override
+    public void deleteExpenseById(Long expenseId) {
+        Optional<Expense> optionalExpense = expenseRepo.findById(expenseId);
+        if(optionalExpense.isEmpty()){
+            throw new RuntimeException("Expense not found");
+        }
+
+        // Delete the Expense record
+        expenseRepo.deleteById(optionalExpense.get().getId());
+
     }
 }

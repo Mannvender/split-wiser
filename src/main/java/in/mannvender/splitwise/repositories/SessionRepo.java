@@ -8,6 +8,6 @@ import java.util.Optional;
 
 @Repository
 public interface SessionRepo extends JpaRepository<Session, Long> {
-    public Optional<Session> findSessionByTokenAndUser_Id(String token, Long userId);
-    public Session save(Session session);
+    Optional<Session> findSessionByTokenAndUser_Id(String token, Long userId);
+    Session save(Session session);
 }

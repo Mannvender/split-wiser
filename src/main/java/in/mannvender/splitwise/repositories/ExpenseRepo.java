@@ -4,7 +4,11 @@ import in.mannvender.splitwise.models.Expense;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface ExpenseRepo extends JpaRepository<Expense, Long> {
-    public Expense save(Expense expense);
+    Expense save(Expense expense);
+    Optional<Expense> findById(Long expenseId);
+    void deleteById(Long expenseId);
 }

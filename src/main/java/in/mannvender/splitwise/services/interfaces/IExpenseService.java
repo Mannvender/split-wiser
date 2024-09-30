@@ -9,4 +9,5 @@ import java.util.List;
 public interface IExpenseService {
     public Expense createExpense(String description, double amount, Boolean isSettlement, Long groupId, Long createdByUserId, List<AmountUserIdPair> paidByUserIds, List<AmountUserIdPair> hadToPayUserIds);
     public Expense getExpenseById(Long expenseId);
+    public void deleteExpenseById(Long expenseId);
 }

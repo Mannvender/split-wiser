@@ -15,7 +15,7 @@ public class Expense extends BaseModel {
     private double amount;
     @Enumerated(EnumType.ORDINAL)
     private ExpenseType expenseType;
-    @OneToMany(mappedBy = "expense")
+    @OneToMany(mappedBy = "expense", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ExpenseUser> expenseUsers = new ArrayList<>();
     @ManyToOne
     private User createdBy;
