@@ -11,6 +11,7 @@ import java.util.Optional;
 public interface UserRepo extends JpaRepository<User, Long> {
     // read
     List<User> findAll();
+    List<User> findAllById(Iterable<Long> userIds);
     Optional<User> findById(Long userId);
     Optional<User> findByEmail(String email);
 

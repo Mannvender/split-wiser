@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController()
 @RequestMapping("/user")
@@ -25,11 +26,11 @@ public class UserController {
         if(userId == null){
             throw new RuntimeException("User Id cannot be null");
         }
-        User user = userService.getUserById(userId);
-        if(user == null){
+        Optional<User> optionalUser = userService.getUserById(userId);
+        if(optionalUser.isEmpty()){
             throw new RuntimeException("User not found");
         }
-        return convertToUserResponseDto(user);
+        return convertToUserResponseDto(optionalUser.get());
     }
 
 //    @PostMapping("/")

@@ -23,13 +23,18 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    public User getUserById(Long userId) {
-        return userRepo.findById(userId).orElse(null);
+    public List<User> getUsersByIds(List<Long> userIds) {
+        return userRepo.findAllById(userIds);
     }
 
     @Override
-    public User getUserByEmail(String email) {
-        return userRepo.findByEmail(email).orElse(null);
+    public Optional<User> getUserById(Long userId) {
+        return userRepo.findById(userId);
+    }
+
+    @Override
+    public Optional<User> getUserByEmail(String email) {
+        return userRepo.findByEmail(email);
     }
 
     @Override

@@ -2,8 +2,10 @@ package in.mannvender.splitwise.services;
 
 import in.mannvender.splitwise.models.Expense;
 import in.mannvender.splitwise.models.ExpenseUser;
+import in.mannvender.splitwise.models.Group;
 import in.mannvender.splitwise.models.User;
 import in.mannvender.splitwise.repositories.ExpenseUserRepo;
+import in.mannvender.splitwise.repositories.GroupRepo;
 import in.mannvender.splitwise.repositories.UserRepo;
 import in.mannvender.splitwise.services.interfaces.ISettleUpService;
 import in.mannvender.splitwise.strategies.SettleUpStrategy;
@@ -19,6 +21,8 @@ import java.util.Set;
 public class SettleUpServiceImpl implements ISettleUpService {
     @Autowired
     private UserRepo userRepo;
+    @Autowired
+    private GroupRepo groupRepo;
     @Autowired
     private ExpenseUserRepo expenseUserRepo;
     @Autowired
@@ -52,6 +56,10 @@ public class SettleUpServiceImpl implements ISettleUpService {
 
     @Override
     public List<Expense> settleUpGroup(Long groupId) {
-        return List.of();
+        Optional<Group> optionalGroup = groupRepo.findById(groupId);
+        if(optionalGroup.isEmpty()){
+            throw new RuntimeException("Group not found");
+        }
+        return settleUpStrategy.settleUp(optionalGroup.get().getExpenses());
     }
 }
