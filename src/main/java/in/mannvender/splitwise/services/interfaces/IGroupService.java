@@ -10,4 +10,6 @@ public interface IGroupService {
     public Group createGroup(String name, String description, User createdBy, List<User> members);
 
     Optional<Group> getGroupById(Long groupId);
+
+    void deleteGroup(Long groupId);
 }

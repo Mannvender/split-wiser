@@ -65,6 +65,14 @@ public class GroupController {
         return mapToGroupResponseDto(optionalGroup.get());
     }
 
+    @DeleteMapping("/{groupId}")
+    public void deleteGroup(@PathVariable("groupId") Long groupId){
+        if(groupId == null){
+            throw new RuntimeException("Group Id cannot be null");
+        }
+        groupService.deleteGroup(groupId);
+    }
+
     private GroupResponseDto mapToGroupResponseDto(Group group){
         GroupResponseDto responseDto = new GroupResponseDto();
         responseDto.setId(group.getId());

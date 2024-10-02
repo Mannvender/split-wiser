@@ -28,4 +28,9 @@ public class GroupServiceImpl implements IGroupService {
     public Optional<Group> getGroupById(Long groupId) {
         return groupRepo.findById(groupId);
     }
+
+    @Override
+    public void deleteGroup(Long groupId) {
+        groupRepo.deleteById(groupId);
+    }
 }
