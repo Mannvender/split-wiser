@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -59,12 +60,21 @@ public class AuthController {
         Pair<User, String> userTokenPair = authService.login(requestDto.getEmail(), requestDto.getPassword());
         User user = userTokenPair.getFirst();
         String token = userTokenPair.getSecond();
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-        headers.add(HttpHeaders.SET_COOKIE, token);
 
         if(user == null) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
+
+        ResponseCookie cookie = ResponseCookie.from("token", token)
+                .httpOnly(true)
+                .secure(false)
+                .maxAge(60 * 60 * 24 * 7) // 1 week
+                .path("/")
+                .build();
+
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add(HttpHeaders.SET_COOKIE, cookie.toString());
+
         AuthLoginResponseDto responseDto = convertToAuthLoginResponseDto(user);
         ResponseEntity<AuthLoginResponseDto> responseEntity = new ResponseEntity<>(responseDto, headers, HttpStatus.OK);
         return responseEntity;

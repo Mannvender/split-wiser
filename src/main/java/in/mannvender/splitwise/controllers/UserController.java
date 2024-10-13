@@ -1,5 +1,6 @@
 package in.mannvender.splitwise.controllers;
 
+import in.mannvender.splitwise.config.UserContext;
 import in.mannvender.splitwise.dtos.user.UserRequestDto;
 import in.mannvender.splitwise.dtos.user.UserResponseDto;
 import in.mannvender.splitwise.models.User;
@@ -19,6 +20,16 @@ public class UserController {
     @GetMapping("/all")
     public List<UserResponseDto> getAllUsers(){
         return null;
+    }
+
+    @GetMapping("/me")
+    public UserResponseDto getLoggedInUser(){
+        // return user from context
+        User user = UserContext.getUser();
+        if(user == null){
+            throw new RuntimeException("UserContext not found");
+        }
+        return convertToUserResponseDto(user);
     }
 
     @GetMapping("/{userId}")
