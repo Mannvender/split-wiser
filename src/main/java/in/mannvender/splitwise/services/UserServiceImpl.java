@@ -4,6 +4,7 @@ import in.mannvender.splitwise.models.User;
 import in.mannvender.splitwise.repositories.UserRepo;
 import in.mannvender.splitwise.services.interfaces.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -14,8 +15,13 @@ import java.util.Optional;
 public class UserServiceImpl implements IUserService {
     @Autowired
     private UserRepo userRepo;
+
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+
     @Autowired
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+    public UserServiceImpl(@Lazy BCryptPasswordEncoder bCryptPasswordEncoder) {
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+    }
 
     @Override
     public List<User> getAllUsers() {

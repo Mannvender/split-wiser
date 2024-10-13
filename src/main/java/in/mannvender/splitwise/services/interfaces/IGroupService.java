@@ -11,5 +11,7 @@ public interface IGroupService {
 
     Optional<Group> getGroupById(Long groupId);
 
+    List<Group> getGroupsByUserId(Long userId);
+
     void deleteGroup(Long groupId);
 }

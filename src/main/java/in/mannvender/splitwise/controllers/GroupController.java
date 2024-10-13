@@ -65,6 +65,16 @@ public class GroupController {
         return mapToGroupResponseDto(optionalGroup.get());
     }
 
+    // get mapping for getting all groups of a user
+    @GetMapping("/user/{userId}")
+    public List<GroupResponseDto> getGroupsByUserId(@PathVariable("userId") Long userId){
+        if(userId == null){
+            throw new RuntimeException("User Id cannot be null");
+        }
+        List<Group> groups = groupService.getGroupsByUserId(userId);
+        return groups.stream().map(this::mapToGroupResponseDto).toList();
+    }
+
     @DeleteMapping("/{groupId}")
     public void deleteGroup(@PathVariable("groupId") Long groupId){
         if(groupId == null){
