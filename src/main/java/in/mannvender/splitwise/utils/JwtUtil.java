@@ -34,9 +34,7 @@ public class JwtUtil {
     }
 
     public Long extractExp(String token){
-        System.out.println("Extracting user id from token: " + token);
         Claims claims = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getBody();
-        System.out.println("Claims: " + claims);
         return Long.parseLong(claims.get("exp").toString());
     }
 }

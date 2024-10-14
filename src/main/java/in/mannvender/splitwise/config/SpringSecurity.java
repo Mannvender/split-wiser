@@ -33,10 +33,7 @@ public class SpringSecurity {
     public SecurityFilterChain getSecurityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.cors().disable();
         httpSecurity.csrf().disable();
-        httpSecurity.authorizeHttpRequests(authorize -> authorize
-            .requestMatchers("/auth/login", "/auth/signup", "/auth/validate-token").permitAll() // Open endpoints
-            .anyRequest().authenticated() // Secure all other endpoints
-        );
+        httpSecurity.authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll());
         httpSecurity.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return httpSecurity.build();
     }
