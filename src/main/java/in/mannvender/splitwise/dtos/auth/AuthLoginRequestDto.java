@@ -8,9 +8,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class AuthLoginRequestDto {
-    @NotBlank
-    @Email
+    @NotBlank(message = "Email cannot be blank")
+    @Email(message = "Email should be valid")
     private String email;
-    @NotBlank
+    @NotBlank(message = "Password cannot be blank")
     private String password;
 }
