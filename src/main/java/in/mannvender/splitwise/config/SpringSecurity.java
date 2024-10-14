@@ -13,14 +13,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-
 import javax.crypto.SecretKey;
 
 @Configuration
 public class SpringSecurity {
     private final JwtFilter jwtFilter;
 
+    @Autowired
     public SpringSecurity(@Lazy JwtFilter jwtFilter) {
         this.jwtFilter = jwtFilter;
     }
@@ -31,12 +30,15 @@ public class SpringSecurity {
     }
 
     @Bean
-    public SecurityFilterChain getSecurityFilterChain(HttpSecurity httpsSecurity) throws Exception {
-        httpsSecurity.cors().disable();
-        httpsSecurity.csrf().disable();
-        httpsSecurity.authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll());
-        httpsSecurity.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-        return httpsSecurity.build();
+    public SecurityFilterChain getSecurityFilterChain(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity.cors().disable();
+        httpSecurity.csrf().disable();
+        httpSecurity.authorizeHttpRequests(authorize -> authorize
+            .requestMatchers("/auth/login", "/auth/signup", "/auth/validate-token").permitAll() // Open endpoints
+            .anyRequest().authenticated() // Secure all other endpoints
+        );
+        httpSecurity.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+        return httpSecurity.build();
     }
 
     @Bean

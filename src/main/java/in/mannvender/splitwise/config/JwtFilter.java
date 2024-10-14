@@ -1,6 +1,6 @@
 package in.mannvender.splitwise.config;
 
-import in.mannvender.splitwise.annotations.OpenEndpoint;
+import in.mannvender.splitwise.config.UserContext;
 import in.mannvender.splitwise.models.User;
 import in.mannvender.splitwise.services.interfaces.IUserService;
 import in.mannvender.splitwise.utils.JwtUtil;
@@ -13,18 +13,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.method.HandlerMethod;
-import org.springframework.web.servlet.HandlerMapping;
-
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Map;
+import java.util.List;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final IUserService userService;
+    private static final List<String> EXCLUDED_URLS = Arrays.asList("/auth/login", "/auth/signup", "/auth/validate-token");
 
     @Autowired
     public JwtFilter(@Lazy JwtUtil jwtUtil, IUserService userService) {
@@ -34,20 +32,16 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        Map<String, Object> attributes = (Map<String, Object>) request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
-        if (attributes != null) {
-            Object handler = attributes.get(HandlerMapping.BEST_MATCHING_HANDLER_ATTRIBUTE);
-            if (handler instanceof HandlerMethod) {
-                HandlerMethod handlerMethod = (HandlerMethod) handler;
-                if (handlerMethod.hasMethodAnnotation(OpenEndpoint.class)) {
-                    filterChain.doFilter(request, response);
-                    return;
-                }
-            }
+        String requestURI = request.getRequestURI();
+        if (EXCLUDED_URLS.contains(requestURI)) {
+            filterChain.doFilter(request, response);
+            return;
         }
 
+        // Retrieve cookies from the request
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
+            // Find the token cookie
             Cookie tokenCookie = Arrays.stream(cookies)
                     .filter(cookie -> "token".equals(cookie.getName()))
                     .findFirst()
@@ -56,14 +50,18 @@ public class JwtFilter extends OncePerRequestFilter {
             if (tokenCookie != null) {
                 String token = tokenCookie.getValue();
                 try {
+                    // Extract user ID and expiration time from the token
                     Long userId = jwtUtil.extractUserId(token);
                     Long exp = jwtUtil.extractExp(token);
+                    // Check if the token is expired
                     if (exp < System.currentTimeMillis()) {
                         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                         return;
                     }
+                    // Retrieve the user by ID
                     User user = userService.getUserById(userId).orElse(null);
                     if (user != null) {
+                        // Set the user in the UserContext
                         UserContext.setUser(user);
                     } else {
                         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -82,7 +80,9 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
+        // Proceed with the filter chain
         filterChain.doFilter(request, response);
+        // Clear the UserContext after the request is processed
         UserContext.clear();
     }
 }
