@@ -13,5 +13,5 @@ public interface GroupRepo extends JpaRepository<Group, Long> {
     Optional<Group> findById(Long groupId);
     Group save(Group group);
     void deleteById(Long groupId);
-    List<Group> findByMembers(List<User> users);
+    List<Group> findByGroupRoles(List<User> users);
 }

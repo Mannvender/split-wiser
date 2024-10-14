@@ -1,16 +1,16 @@
 package in.mannvender.splitwise.controllers;
 
 import ch.qos.logback.core.util.StringUtil;
+import in.mannvender.splitwise.config.UserContext;
 import in.mannvender.splitwise.dtos.group.GroupRequestDto;
 import in.mannvender.splitwise.dtos.group.GroupResponseDto;
-import in.mannvender.splitwise.models.BaseModel;
-import in.mannvender.splitwise.models.Group;
-import in.mannvender.splitwise.models.User;
+import in.mannvender.splitwise.models.*;
 import in.mannvender.splitwise.services.interfaces.IGroupService;
 import in.mannvender.splitwise.services.interfaces.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,14 +25,21 @@ public class GroupController {
 
     @PostMapping
     public GroupResponseDto createGroup(@RequestBody GroupRequestDto requestDto){
+        // validate requestDto
         if(requestDto == null){
             throw new RuntimeException("Group cannot be null");
         }
+        // validate name
         if(requestDto.getName() == null || requestDto.getName().isEmpty()){
             throw new RuntimeException("Group name cannot be null or empty");
         }
+        // validate createdByUserId
         if(requestDto.getCreatedByUserId() == null){
             throw new RuntimeException("Created by user id cannot be null");
+        }
+        // validate createdByUserId is same as User in UserContext
+        if(UserContext.getUser().getId() != requestDto.getCreatedByUserId()){
+            throw new RuntimeException("Created by user id should be same as logged in user id");
         }
         // validate all member ids
         if(requestDto.getMemberIds() == null){
@@ -43,13 +50,53 @@ public class GroupController {
                 throw new RuntimeException("Member id cannot be null or empty");
             }
         }
+        // validate all admin ids: admin ids can be null or empty list
+        if(requestDto.getAdminIds() != null){
+            for(Long adminId: requestDto.getAdminIds()){
+                if(StringUtil.isNullOrEmpty(adminId.toString())){
+                    throw new RuntimeException("Admin id cannot be null or empty");
+                }
+            }
+        }
         List<User> members = userService.getUsersByIds(requestDto.getMemberIds());
+        // make sure all members are found
+        if(members.size() != requestDto.getMemberIds().size()){
+            throw new RuntimeException("Some members not found");
+        }
+
+        List<User> admins = userService.getUsersByIds(requestDto.getAdminIds());
+        // make sure all admins are found
+        if(admins.size() != requestDto.getAdminIds().size()){
+            throw new RuntimeException("Some admins not found");
+        }
+
+        // make sure createdBy user is found
         Optional<User> optionalCreatedBy = userService.getUserById(requestDto.getCreatedByUserId());
         if(optionalCreatedBy.isEmpty()){
             throw new RuntimeException("Created by user not found");
         }
 
-        Group group = groupService.createGroup(requestDto.getName(), requestDto.getDescription(), optionalCreatedBy.get(), members);
+        // map members and admins to groupRoles
+        List<GroupRole> groupRoles = new ArrayList<>();
+        for(User member: members){
+            GroupRole groupRole = new GroupRole();
+            groupRole.setUser(member);
+            groupRole.setRoleType(RoleType.MEMBER);
+            groupRoles.add(groupRole);
+        }
+        for(User admin: admins){
+            GroupRole groupRole = new GroupRole();
+            groupRole.setUser(admin);
+            groupRole.setRoleType(RoleType.ADMIN);
+            groupRoles.add(groupRole);
+        }
+        // creator is admin as well
+        GroupRole groupRole = new GroupRole();
+        groupRole.setUser(optionalCreatedBy.get());
+        groupRole.setRoleType(RoleType.ADMIN);
+        groupRoles.add(groupRole);
+
+        Group group = groupService.createGroup(requestDto.getName(), requestDto.getDescription(), optionalCreatedBy.get(), groupRoles);
         return mapToGroupResponseDto(group);
     }
 
@@ -89,7 +136,8 @@ public class GroupController {
         responseDto.setName(group.getName());
         responseDto.setDescription(group.getDescription());
         responseDto.setCreatedByUserId(group.getCreatedBy().getId());
-        responseDto.setMemberIds(group.getMembers().stream().map(BaseModel::getId).toArray(Long[]::new));
+        // extract userIds from GroupRoles
+        responseDto.setMemberIds(group.getGroupRoles().stream().map(groupRole -> groupRole.getUser().getId()).toArray(Long[]::new));
         return responseDto;
     }
 

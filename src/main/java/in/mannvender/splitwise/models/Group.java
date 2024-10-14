@@ -3,6 +3,7 @@ package in.mannvender.splitwise.models;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,8 +17,8 @@ public class Group extends BaseModel {
     private String description;
     @ManyToOne
     private User createdBy;
-    @ManyToMany
-    private List<User> members;
+    @OneToMany(mappedBy = "group")
+    private List<GroupRole> groupRoles;
     @ManyToMany
     private List<Expense> expenses;
 }

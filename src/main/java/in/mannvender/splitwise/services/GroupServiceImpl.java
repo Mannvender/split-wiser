@@ -2,6 +2,7 @@ package in.mannvender.splitwise.services;
 
 import in.mannvender.splitwise.config.UserContext;
 import in.mannvender.splitwise.models.Group;
+import in.mannvender.splitwise.models.GroupRole;
 import in.mannvender.splitwise.models.User;
 import in.mannvender.splitwise.repositories.GroupRepo;
 import in.mannvender.splitwise.repositories.UserRepo;
@@ -19,12 +20,12 @@ public class GroupServiceImpl implements IGroupService {
     @Autowired
     private UserRepo userRepo;
     @Override
-    public Group createGroup(String name, String description, User createdBy, List<User> members) {
+    public Group createGroup(String name, String description, User createdBy, List<GroupRole> groupRoles) {
         Group group = new Group();
         group.setName(name);
         group.setDescription(description);
         group.setCreatedBy(createdBy);
-        group.setMembers(members);
+        group.setGroupRoles(groupRoles);
         return groupRepo.save(group);
     }
 
@@ -40,7 +41,7 @@ public class GroupServiceImpl implements IGroupService {
         if(currentUser == null || !currentUser.getId().equals(userId)){
             throw new RuntimeException("Unauthorized access");
         }
-        return groupRepo.findByMembers(List.of(currentUser));
+        return groupRepo.findByGroupRoles(List.of(currentUser));
     }
 
     @Override

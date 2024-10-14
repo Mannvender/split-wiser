@@ -1,11 +1,11 @@
 package in.mannvender.splitwise.controllers;
 
+import in.mannvender.splitwise.annotations.OpenEndpoint;
 import in.mannvender.splitwise.dtos.auth.*;
 import in.mannvender.splitwise.dtos.user.UserResponseDto;
 import in.mannvender.splitwise.models.User;
 import in.mannvender.splitwise.services.interfaces.IAuthService;
 import in.mannvender.splitwise.services.interfaces.IUserService;
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
 import org.springframework.http.HttpHeaders;
@@ -27,6 +27,7 @@ public class AuthController {
     @Autowired
     private IAuthService authService;
 
+    @OpenEndpoint
     @PostMapping("/signup")
     public ResponseEntity<AuthSignupResponseDto> signUp(@RequestBody AuthSignupRequestDto requestDto) {
         try {
@@ -51,6 +52,7 @@ public class AuthController {
         }
     }
 
+    @OpenEndpoint
     @PostMapping("/login")
     public ResponseEntity<AuthLoginResponseDto> login(@RequestBody AuthLoginRequestDto requestDto) {
         if (requestDto == null || requestDto.getEmail() == null || requestDto.getPassword() == null || requestDto.getEmail().isEmpty() || requestDto.getPassword().isEmpty()) {
@@ -80,6 +82,7 @@ public class AuthController {
         return responseEntity;
     }
 
+    @OpenEndpoint
     @PostMapping("/validate-token")
     public ResponseEntity<AuthValidateTokenResponseDto> validateToken(@RequestBody AuthValidateTokenRequestDto requestDto) {
         if (requestDto == null || requestDto.getToken() == null || requestDto.getToken().isEmpty() || requestDto.getUserId() == null) {
