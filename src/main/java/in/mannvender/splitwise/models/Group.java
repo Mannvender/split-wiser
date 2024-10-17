@@ -1,9 +1,6 @@
 package in.mannvender.splitwise.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,7 +14,7 @@ public class Group extends BaseModel {
     private String description;
     @ManyToOne
     private User createdBy;
-    @OneToMany(mappedBy = "group")
+    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<GroupRole> groupRoles;
     @ManyToMany
     private List<Expense> expenses;
