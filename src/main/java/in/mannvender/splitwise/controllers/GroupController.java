@@ -4,6 +4,7 @@ import ch.qos.logback.core.util.StringUtil;
 import in.mannvender.splitwise.config.UserContext;
 import in.mannvender.splitwise.dtos.group.GroupRequestDto;
 import in.mannvender.splitwise.dtos.group.GroupResponseDto;
+import in.mannvender.splitwise.dtos.user.UserResponseDto;
 import in.mannvender.splitwise.models.*;
 import in.mannvender.splitwise.repositories.GroupRepo;
 import in.mannvender.splitwise.services.interfaces.IGroupService;
@@ -141,9 +142,23 @@ public class GroupController {
         responseDto.setDescription(group.getDescription());
         responseDto.setCreatedByUserId(group.getCreatedBy().getId());
         // extract memberIds from GroupRoles
-        responseDto.setMemberIds(group.getGroupRoles().stream().filter(groupRole -> groupRole.getRoleType() == RoleType.MEMBER).map(groupRole -> groupRole.getUser().getId()).toList());
+        List<UserResponseDto> members = group.getGroupRoles().stream().filter(groupRole -> groupRole.getRoleType() == RoleType.MEMBER).map(groupRole -> {
+            UserResponseDto userResponseDto = new UserResponseDto();
+            userResponseDto.setId(groupRole.getUser().getId());
+            userResponseDto.setName(groupRole.getUser().getName());
+            userResponseDto.setEmail(groupRole.getUser().getEmail());
+            return userResponseDto;
+        }).toList();
+        responseDto.setMembers(members);
         // extract adminIds from GroupRoles
-        responseDto.setAdminIds(group.getGroupRoles().stream().filter(groupRole -> groupRole.getRoleType() == RoleType.ADMIN).map(groupRole -> groupRole.getUser().getId()).toList());
+        List<UserResponseDto> admins = group.getGroupRoles().stream().filter(groupRole -> groupRole.getRoleType() == RoleType.ADMIN).map(groupRole -> {
+            UserResponseDto userResponseDto = new UserResponseDto();
+            userResponseDto.setId(groupRole.getUser().getId());
+            userResponseDto.setName(groupRole.getUser().getName());
+            userResponseDto.setEmail(groupRole.getUser().getEmail());
+            return userResponseDto;
+        }).toList();
+        responseDto.setAdmins(admins);
         return responseDto;
     }
 

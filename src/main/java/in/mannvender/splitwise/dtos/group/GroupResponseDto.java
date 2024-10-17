@@ -1,5 +1,6 @@
 package in.mannvender.splitwise.dtos.group;
 
+import in.mannvender.splitwise.dtos.user.UserResponseDto;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,6 +13,6 @@ public class GroupResponseDto {
     private String name;
     private String description;
     private Long createdByUserId;
-    private List<Long> memberIds;
-    private List<Long> adminIds;
+    private List<UserResponseDto> members;
+    private List<UserResponseDto> admins;
 }
