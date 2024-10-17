@@ -5,6 +5,7 @@ import in.mannvender.splitwise.models.Group;
 import in.mannvender.splitwise.models.GroupRole;
 import in.mannvender.splitwise.models.User;
 import in.mannvender.splitwise.repositories.GroupRepo;
+import in.mannvender.splitwise.repositories.GroupRoleRepo;
 import in.mannvender.splitwise.repositories.UserRepo;
 import in.mannvender.splitwise.services.interfaces.IGroupService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,8 @@ public class GroupServiceImpl implements IGroupService {
     private GroupRepo groupRepo;
     @Autowired
     private UserRepo userRepo;
+    @Autowired
+    private GroupRoleRepo groupRoleRepo;
     @Override
     public Group createGroup(String name, String description, User createdBy, List<GroupRole> groupRoles) {
         Group group = new Group();
@@ -35,13 +38,13 @@ public class GroupServiceImpl implements IGroupService {
     }
 
     @Override
-    public List<Group> getGroupsByUserId(Long userId) {
+    public List<Group> getGroupsByLoggedInUser() {
         User currentUser = UserContext.getUser();
-        System.out.println(currentUser + " " + userId);
-        if(currentUser == null || !currentUser.getId().equals(userId)){
+        if(currentUser == null){
             throw new RuntimeException("Unauthorized access");
         }
-        return groupRepo.findByGroupRoles(List.of(currentUser));
+        List<GroupRole> groupRoles = groupRoleRepo.findGroupRolesByUser(currentUser);
+        return groupRoles.stream().map(GroupRole::getGroup).toList();
     }
 
     @Override

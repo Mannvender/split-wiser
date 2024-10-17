@@ -12,7 +12,7 @@ public interface IGroupService {
 
     Optional<Group> getGroupById(Long groupId);
 
-    List<Group> getGroupsByUserId(Long userId);
+    List<Group> getGroupsByLoggedInUser();
 
     void deleteGroup(Long groupId);
 }

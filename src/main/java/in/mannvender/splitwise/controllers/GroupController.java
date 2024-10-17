@@ -5,8 +5,10 @@ import in.mannvender.splitwise.config.UserContext;
 import in.mannvender.splitwise.dtos.group.GroupRequestDto;
 import in.mannvender.splitwise.dtos.group.GroupResponseDto;
 import in.mannvender.splitwise.models.*;
+import in.mannvender.splitwise.repositories.GroupRepo;
 import in.mannvender.splitwise.services.interfaces.IGroupService;
 import in.mannvender.splitwise.services.interfaces.IUserService;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,10 +20,13 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/group")
 public class GroupController {
+    private final Logger logger = org.slf4j.LoggerFactory.getLogger(GroupController.class);
     @Autowired
     private IGroupService groupService;
     @Autowired
     private IUserService userService;
+    @Autowired
+    private GroupRepo groupRepo;
 
     @PostMapping
     public GroupResponseDto createGroup(@RequestBody GroupRequestDto requestDto){
@@ -113,12 +118,11 @@ public class GroupController {
     }
 
     // get mapping for getting all groups of a user
-    @GetMapping("/user/{userId}")
-    public List<GroupResponseDto> getGroupsByUserId(@PathVariable("userId") Long userId){
-        if(userId == null){
-            throw new RuntimeException("User Id cannot be null");
-        }
-        List<Group> groups = groupService.getGroupsByUserId(userId);
+    @GetMapping("/me")
+    public List<GroupResponseDto> getGroupsByUserId(){
+        List<Group> groups = groupService.getGroupsByLoggedInUser();
+        logger.info("Groups: {}", groups);
+
         return groups.stream().map(this::mapToGroupResponseDto).toList();
     }
 
@@ -136,8 +140,10 @@ public class GroupController {
         responseDto.setName(group.getName());
         responseDto.setDescription(group.getDescription());
         responseDto.setCreatedByUserId(group.getCreatedBy().getId());
-        // extract userIds from GroupRoles
-        responseDto.setMemberIds(group.getGroupRoles().stream().map(groupRole -> groupRole.getUser().getId()).toArray(Long[]::new));
+        // extract memberIds from GroupRoles
+        responseDto.setMemberIds(group.getGroupRoles().stream().filter(groupRole -> groupRole.getRoleType() == RoleType.MEMBER).map(groupRole -> groupRole.getUser().getId()).toList());
+        // extract adminIds from GroupRoles
+        responseDto.setAdminIds(group.getGroupRoles().stream().filter(groupRole -> groupRole.getRoleType() == RoleType.ADMIN).map(groupRole -> groupRole.getUser().getId()).toList());
         return responseDto;
     }
 

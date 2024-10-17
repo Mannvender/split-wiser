@@ -1,6 +1,7 @@
 package in.mannvender.splitwise.config;
 
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.MacAlgorithm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 @Configuration
 public class SpringSecurity {
@@ -55,9 +57,16 @@ public class SpringSecurity {
 
     @Bean
     public SecretKey getSecretKey() {
-        MacAlgorithm algorithm = Jwts.SIG.HS256;
-        SecretKey secretKey = algorithm.key().build();
-        logger.info("Secret key generated: " + secretKey);
+//        MacAlgorithm algorithm = Jwts.SIG.HS256;
+//        SecretKey secretKey = algorithm.key().build();
+//        logger.info("Secret key generated: " + secretKey.toString());
+//        return secretKey;
+
+        // This is a hardcoded secret key. In production, you should generate a random secret key and store it securely.
+        String hardcodedSecret = "your-32-byte-long-hardcoded-secret-key";
+        byte[] secretBytes = hardcodedSecret.getBytes();
+        SecretKey secretKey = Keys.hmacShaKeyFor(secretBytes);
         return secretKey;
     }
+
 }

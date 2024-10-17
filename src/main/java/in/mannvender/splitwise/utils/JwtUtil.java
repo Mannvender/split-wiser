@@ -2,6 +2,7 @@ package in.mannvender.splitwise.utils;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -11,6 +12,7 @@ import java.util.Map;
 
 @Component
 public class JwtUtil {
+    private final Logger logger = org.slf4j.LoggerFactory.getLogger(JwtUtil.class);
     private final SecretKey secretKey;
 
     public JwtUtil(SecretKey secretKey) {
@@ -27,9 +29,8 @@ public class JwtUtil {
 //        claims.put("iss", "split_wiser");
 //    String token = Jwts.builder().claims(claims).signWith(secretKey).compact();
     public Long extractUserId(String token){
-        System.out.println("Extracting user id from token: " + token);
         Claims claims = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getBody();
-        System.out.println("Claims: " + claims);
+        logger.info("Claims: " + claims);
         return Long.parseLong(claims.get("user_id").toString());
     }
 

@@ -3,6 +3,8 @@ package in.mannvender.splitwise.dtos.group;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 public class GroupResponseDto {
@@ -10,5 +12,6 @@ public class GroupResponseDto {
     private String name;
     private String description;
     private Long createdByUserId;
-    private Long[] memberIds;
+    private List<Long> memberIds;
+    private List<Long> adminIds;
 }
