@@ -1,6 +1,5 @@
 package in.mannvender.splitwise.config;
 
-import in.mannvender.splitwise.config.UserContext;
 import in.mannvender.splitwise.models.User;
 import in.mannvender.splitwise.services.interfaces.IUserService;
 import in.mannvender.splitwise.utils.JwtUtil;
@@ -9,6 +8,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Cookie;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -19,6 +20,7 @@ import java.util.List;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
+    private static final Logger logger = LoggerFactory.getLogger(JwtFilter.class);
 
     private final JwtUtil jwtUtil;
     private final IUserService userService;
@@ -41,6 +43,7 @@ protected void doFilterInternal(HttpServletRequest request, HttpServletResponse 
     // Retrieve cookies from the request
     Cookie[] cookies = request.getCookies();
     if (cookies != null) {
+        logger.info("----------COOKIES EXTRACTION START----------");
         // Find the token cookie
         Cookie tokenCookie = Arrays.stream(cookies)
                 .filter(cookie -> "token".equals(cookie.getName()))
@@ -52,9 +55,9 @@ protected void doFilterInternal(HttpServletRequest request, HttpServletResponse 
             try {
                 // Extract user ID and expiration time from the token
                 Long userId = jwtUtil.extractUserId(token);
-                System.out.println("User ID: " + userId);
+                logger.info("User ID: " + userId);
                 Long exp = jwtUtil.extractExp(token);
-                System.out.println("Token Expiration Time: " + exp);
+                logger.info("Token Expiration Time: " + exp);
                 // Check if the token is expired
                 if (exp < System.currentTimeMillis() / 1000) {
                     System.out.println("Token expired");
@@ -63,7 +66,6 @@ protected void doFilterInternal(HttpServletRequest request, HttpServletResponse 
                 }
                 // Retrieve the user by ID
                 User user = userService.getUserById(userId).orElse(null);
-                System.out.println("User: " + user);
                 if (user != null) {
                     // Set the user in the UserContext
                     UserContext.setUser(user);
@@ -72,8 +74,7 @@ protected void doFilterInternal(HttpServletRequest request, HttpServletResponse 
                     return;
                 }
             } catch (Exception e) {
-                System.out.println("Invalid token");
-                System.out.println(e.getMessage());
+                logger.warn("Invalid token. Reason: " + e.getMessage());
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
